@@ -238,9 +238,10 @@ func (irc *Connection) Loop() {
 			irc.Log.Printf("Error, disconnected: %s\n", err)
 			if err = irc.Reconnect(); err != nil {
 				irc.Log.Printf("Error while reconnecting: %s\n", err)
-				time.Sleep(60 * time.Second)
+				time.Sleep(irc.Timeout)
 			} else {
 				errChan = irc.ErrorChan()
+				time.Sleep(irc.Timeout)
 				break
 			}
 		}
@@ -572,7 +573,7 @@ func (irc *Connection) negotiateCaps() error {
 // Create a connection with the (publicly visible) nickname and username.
 // The nickname is later used to address the user. Returns nil if nick
 // or user are empty.
-func IRC(nick, user string) *Connection {
+func IRC(nick, user string, timeout time.Duration) *Connection {
 	// catch invalid values
 	if len(nick) == 0 {
 		return nil
@@ -589,7 +590,7 @@ func IRC(nick, user string) *Connection {
 		end:         make(chan struct{}),
 		Version:     VERSION,
 		KeepAlive:   4 * time.Minute,
-		Timeout:     1 * time.Minute,
+		Timeout:     timeout,
 		PingFreq:    15 * time.Minute,
 		SASLMech:    "PLAIN",
 		QuitMessage: "",
